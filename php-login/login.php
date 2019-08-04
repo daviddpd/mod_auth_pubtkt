@@ -13,17 +13,8 @@ require_once("pubtkt.inc");
 	in production - otherwise, anyone could fake your tickets! Generate
 	your own key!
 */
-$domain = ".example.com";
-$secure_cookie = false;	/* set to true if all your web servers use HTTPS */
 
-$logfile = "private/login.log";
-$privkeyfile = "private/tkt_privkey_dsa.pem";
-$pubkeyfile = "private/tkt_pubkey_dsa.pem";
-$keytype = "DSA";
-$digest = "default";
-$localuserdb = "private/users.txt";
-$default_timeout = 86400;
-$default_graceperiod = 3600;
+include ("./private/config.php");
 
 /* authenticates the user with the given password against the local
    user database; returns an array with the following information:
@@ -146,7 +137,7 @@ if ($_POST) {
 
 		/* Checking validity of the ticket and if we are between begin of grace 
 		   period and end of ticket validity. If so we can refresh ticket */
-		if (pubtkt_verify($pubkeyfile, $keytype, $digest, $ticket) && isset($tkt_graceperiod)
+		if (pubtkt_verify($pubkeyfile, $keytype, $digest, $_COOKIE['auth_pubtkt']) && isset($tkt_graceperiod)
 		    && is_numeric($tkt_graceperiod) && ($tkt_graceperiod <= time()) 
 		    && (time() <= $tkt_validuntil)) {
 

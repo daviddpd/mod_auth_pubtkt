@@ -6,7 +6,7 @@
 	written by Manuel Kasper <mk@neon1.net>
 */
 
-$domain = ".example.com";
+include ("./private/config.php");
 
 if ($_POST['logout']) {
 	/* only do this if there really has been a POST; otherwise we could

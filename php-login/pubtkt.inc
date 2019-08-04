@@ -141,12 +141,12 @@ function pubtkt_generate_php($privkey, $uid, $clientip, $validuntil, $graceperio
 */
 function pubtkt_verify($pubkeyfile, $pubkeytype, $digest, $ticket) {
 	/* strip off signature */
-	$sigpos = strpos($ticket, ";sig=");
+	$sigpos = strpos($ticket, ";sig="); // *// 
 	if ($sigpos === false)
 		return false;	/* no signature found */
 	
-	$ticketdata = substr($ticket, 0, $sigpos);
-	$sigdata = base64_decode(substr($ticket, $sigpos + 5));
+	$ticketdata = substr($ticket, 0, $sigpos); // *// 
+	$sigdata = base64_decode(substr($ticket, $sigpos + 5)); // *// 
 	
 	if (!$sigdata)
 		return false;
@@ -222,6 +222,7 @@ function pubtkt_parse($ticket) {
 		list($key,$val) = explode("=", $kvpair, 2);
 		$tkt[$key] = $val;
 	}
+	error_log ( json_encode ( $tkt ) );
 	
 	return $tkt;
 }

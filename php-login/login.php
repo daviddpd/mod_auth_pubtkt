@@ -7,6 +7,8 @@
 */
 
 require_once("pubtkt.inc");
+require_once("pubtkt-simplefile.inc");
+require_once("userdb.inc");
 
 /*	Set the parameters relevant to your domain below.
 	WARNING: do not use the example keys provided with the distribution
@@ -24,60 +26,6 @@ include ("./private/config.php");
    timeout => how long the ticket should be valid (in seconds)
    graceperiod => how long the ticket should be refreshed before expiring (in seconds)
 */
-function local_login($username, $password) {
-	$user_info = get_login_info($username);
-
-	if (isset($user_info) && is_array($user_info)) {
-		$out_info = $user_info['data'];
-		$out_info['success'] = ($user_info['password'] === $password || $user_info['password'] === md5($password));
-			
-		return $out_info;
-	}
-	
-	return array('success' => false);
-}
-
-function get_login_info($username) {
-	global $localuserdb, $default_timeout, $default_graceperiod;
-	
-	$fd = @fopen($localuserdb, "r");
-	if ($fd) {
-		while (!feof($fd)) {
-			$line = trim(fgets($fd));
-			if (preg_match("/^\s*#/", $line))
-				continue;
-			if (!$line)
-				continue;
-			
-			list($cusername,$cpassword,$tokens,$timeout,$graceperiod) = explode("\t", $line);
-			
-			if (!$timeout)
-				$timeout = $default_timeout;
-			
-			if (!$graceperiod)
-				$graceperiod = $default_graceperiod;
-			
-			if ($cusername === $username) {
-				fclose($fd);
-				return array('login' => $cusername, 'password' => $cpassword,
-					'data' => array('tokens' => explode(",", $tokens), 'timeout' => $timeout, 'graceperiod' => $graceperiod));
-			}
-		}
-		fclose($fd);
-	}
-	
-	return NULL;
-}
-
-/* very simple file-based login auditing */
-function log_login($ip, $username, $success) {
-	global $logfile;
-	$fd = @fopen($logfile, "a");
-	if ($fd) {
-		fputs($fd, time() . "\t$ip\t$username\t" . ($success ? "1" : "0") . "\n");
-		fclose($fd);
-	}
-}
 
 /* use the last username, if known (saves the user from having to type that all the time) */
 $username = $_COOKIE['sso_lastuser'];
@@ -85,7 +33,7 @@ $password = "";
 $err = "";
 $loginsuccess = false;
 
-if ($_GET['back']) {
+if (isset ($_GET['back'])) {
 	/* Extract the host name of the 'back' URL so we can tell the user when
 	   there will be no point in trying to log in, as the cookie won't be
 	   available to the target server (e.g. if users try to access a server
@@ -103,7 +51,21 @@ if ($_POST) {
 	$password = $_POST['password'];
 	
 	/* try to authenticate */
-	$res = local_login($username, $password);
+	if ( $auth_method == 'file' ) 
+	{
+		$res = local_login($username, $password);
+	} else 
+		if ( $auth_method == 'simpledb' ) 
+	{
+		$db = opendb($simpledb_file);
+		$opt{'user'} = $username;
+		$opt{'pw'} = $password;
+		$res = verifyUserPw($db, $opt);
+	} else 
+		if ( $auth_method == 'ldap' ) 
+	{
+		$res = ldap_auth($username, $password);
+	}
 	
 	if ($res['success']) {
 		log_login($_SERVER['REMOTE_ADDR'], $username, true);
@@ -126,7 +88,7 @@ if ($_POST) {
 		$loginerr = "Authentication failed. Please try again.";
 	}
 } else {
-	if ($_COOKIE['auth_pubtkt']) {
+	if (isset ($_COOKIE['auth_pubtkt']) && $_COOKIE['auth_pubtkt']) {
 		/* Extract data from existing cookie so we can nicely offer the user
 		   a logout function. No attempt at verifying the ticket is made,
 		   as that's not necessary at this point. */
@@ -258,13 +220,13 @@ function readCookie(cookiename) {
 
 <?php else: ?>
 
-<?php if ($_GET['timeout']): ?>
+<?php if (isset ($_GET['timeout']) && $_GET['timeout']): ?>
 <p>Your session has ended due to a timeout; please log in again.</p>
-<?php elseif ($_GET['unauth']): ?>
+<?php elseif (isset ($_GET['unauth']) && $_GET['unauth']): ?>
 <p>You don&apos;t have permission to access the desired resource on
 <?php echo htmlspecialchars($reshost); ?>;<br>you may try logging in again
 with different credentials.</p>
-<?php elseif ($tkt_uid && $tkt_validuntil >= time() && $ticket['cip'] == $_SERVER['REMOTE_ADDR']): ?>
+<?php elseif (isset ($tkt_uid) && $tkt_validuntil >= time() && $ticket['cip'] == $_SERVER['REMOTE_ADDR']): ?>
 <p>You are currently logged on as &apos;<?php echo htmlspecialchars($tkt_uid); ?>&apos;.
 <form action="logout.php" method="POST">
 <input type="submit" name="logout" value="Logout">
@@ -272,7 +234,7 @@ with different credentials.</p>
 </p>
 <?php endif; ?>
 
-<?php if ($loginerr): ?>
+<?php if (isset ($loginerr)): ?>
 <p class="errmsg"><?php echo nl2br(htmlspecialchars($loginerr)); ?></p>
 <?php endif; ?>
 

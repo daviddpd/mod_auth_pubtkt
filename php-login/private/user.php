@@ -1,7 +1,8 @@
 #!/usr/local/bin/php
 <?php
-global $options;
 
+global $options;
+include "../userdb.inc";
 function parseArgs() {
 
 	$longopts  = array(

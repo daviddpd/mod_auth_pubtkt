@@ -9,6 +9,7 @@
 require_once("pubtkt.inc");
 require_once("pubtkt-simplefile.inc");
 require_once("userdb.inc");
+require_once("ldap.php");
 
 /*	Set the parameters relevant to your domain below.
 	WARNING: do not use the example keys provided with the distribution

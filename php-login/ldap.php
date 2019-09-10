@@ -1,6 +1,6 @@
 <?php
 function ldap_auth($user, $password) {
-	global $default_timeout, $default_graceperiod, $default_token, $ldap_host, $ldap_binddn, $ldap_starttls
+	global $default_timeout, $default_graceperiod, $default_token, $ldap_dn, $ldap_host, $ldap_binddn, $ldap_starttls;
 
 	$out['success'] = false;
 	if(empty($user) || empty($password)) return $out;

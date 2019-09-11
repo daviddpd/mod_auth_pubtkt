@@ -20,7 +20,7 @@ if ($_POST['logout']) {
 ?>
 <html>
 <head>
-<title>mod_auth_pubtkt Single Sign-On</title>
+<title><?= $brand_title ?></title>
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
@@ -29,7 +29,7 @@ if ($_POST['logout']) {
 <table width="100%" height="100%">
 <tr><td align="center" valign="middle">
 
-<img src="logo.gif">
+<img src="<?= $brand_logo ?>" <?= $brand_img_attr ?> >
 <h2>Single Sign-On</h2>
 
 <p>You are now logged out.</p>

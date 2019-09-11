@@ -24,4 +24,9 @@ $ldap_starttls = TRUE;
 
 $simpledb_file = "private/userdb.json";
 
+$brand_title = "mod_auth_pubtkt Single Sign-On";
+$brand_logo = "logo.gif";
+$brand_img_attr = "";  // attrs to the IMG HTML tag for the above image.
+
+
 ?>

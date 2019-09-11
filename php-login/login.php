@@ -133,7 +133,7 @@ if ($_POST) {
 ?>
 <html>
 <head>
-<title>mod_auth_pubtkt Single Sign-On</title>
+<title><?= $brand_title ?></title>
 <link rel="stylesheet" type="text/css" href="style.css">
 <script type="text/javascript">
 function dofocus() {
@@ -207,7 +207,7 @@ function readCookie(cookiename) {
 <table width="100%" height="100%">
 <tr><td align="center" valign="middle">
 
-<img src="logo.gif">
+<img src="<?= $brand_logo ?>" <?= $brand_img_attr ?> >
 <h2>Single Sign-On</h2>
 
 <?php if (!$server_allowed): ?>

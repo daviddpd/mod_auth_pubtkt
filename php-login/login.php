@@ -29,7 +29,11 @@ include ("./private/config.php");
 */
 
 /* use the last username, if known (saves the user from having to type that all the time) */
-$username = $_COOKIE['sso_lastuser'];
+if ( isset ($_COOKIE['sso_lastuser']) ) {
+	$username = $_COOKIE['sso_lastuser'];
+} else {
+	$username = "";
+}
 $password = "";
 $err = "";
 $loginsuccess = false;
@@ -47,7 +51,7 @@ if (isset ($_GET['back'])) {
 	$server_allowed = true;
 }
 
-if ($_POST) {
+if (isset ($_POST) ) {
 	$username = strtolower($_POST['username']);	/* always lower-case usernames for easier matching */
 	$password = $_POST['password'];
 	
@@ -80,7 +84,7 @@ if ($_POST) {
 		
 		setcookie("sso_lastuser", $username, time()+30*24*60*60);
 		
-		if ($_GET['back']) {
+		if ( isset ($_GET['back']) ) {
 			header("Location: " . $_GET['back']);
 			exit;
 		}

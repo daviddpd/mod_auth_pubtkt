@@ -91,13 +91,9 @@ if (isset ($_COOKIE['auth_pubtkt']) && $_COOKIE['auth_pubtkt']) {
 	}
 }
 
-if (isset ($_POST) ) {
-	if ( isset ($_POST['username']) ) {
-		$username = strtolower($_POST['username']);	/* always lower-case usernames for easier matching */
-	}
-	if ( isset ($_POST['password']) ) {
-		$password = $_POST['password'];
-	}
+if ( isset ($_POST['username']) && isset ($_POST['password']) ) {
+	$username = strtolower($_POST['username']);	/* always lower-case usernames for easier matching */
+	$password = $_POST['password'];
 	
 	if ( isset ( $username )  && isset ( $password ) ) 
 	{

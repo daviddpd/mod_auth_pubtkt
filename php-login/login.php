@@ -52,24 +52,34 @@ if (isset ($_GET['back'])) {
 }
 
 if (isset ($_POST) ) {
-	$username = strtolower($_POST['username']);	/* always lower-case usernames for easier matching */
-	$password = $_POST['password'];
+	if ( isset ($_POST['username']) ) {
+		$username = strtolower($_POST['username']);	/* always lower-case usernames for easier matching */
+	}
+	if ( isset ($_POST['password']) ) {
+		$password = $_POST['password'];
+	}
 	
-	/* try to authenticate */
-	if ( $auth_method == 'file' ) 
+	if ( isset ( $username )  && isset ( $password ) ) 
 	{
-		$res = local_login($username, $password);
-	} else 
-		if ( $auth_method == 'simpledb' ) 
-	{
-		$db = opendb($simpledb_file);
-		$opt{'user'} = $username;
-		$opt{'pw'} = $password;
-		$res = verifyUserPw($db, $opt);
-	} else 
-		if ( $auth_method == 'ldap' ) 
-	{
-		$res = ldap_auth($username, $password);
+			/* try to authenticate */
+		if ( $auth_method == 'file' ) 
+		{
+			$res = local_login($username, $password);
+		} else 
+			if ( $auth_method == 'simpledb' ) 
+		{
+			$db = opendb($simpledb_file);
+			$opt{'user'} = $username;
+			$opt{'pw'} = $password;
+			$res = verifyUserPw($db, $opt);
+		} else 
+			if ( $auth_method == 'ldap' ) 
+		{
+			$res = ldap_auth($username, $password);
+		}
+	} else {
+		$res = array ();
+		$res['success'] = 0;
 	}
 	
 	if ($res['success']) {

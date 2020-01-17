@@ -22,6 +22,8 @@ $ldap_dn = "ou=people,dc=,dc=";
 // $ldap_binddn = "uid=$user,$ldap_dn";
 $ldap_starttls = TRUE;
 
+$ldap_debug = 0;  // 0 = off, 1, 2, 3 ... 
+
 $simpledb_file = "private/userdb.json";
 
 $brand_title = "mod_auth_pubtkt Single Sign-On";

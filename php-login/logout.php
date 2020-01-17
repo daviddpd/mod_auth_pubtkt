@@ -8,7 +8,7 @@
 
 include ("./private/config.php");
 
-if ($_POST['logout']) {
+if ( isset ($_POST['logout']) ) {
 	/* only do this if there really has been a POST; otherwise we could
 	   be fooled by pre-caching browsers etc. */
 	setcookie("auth_pubtkt", "", time() - 86400, "/", $domain, true);

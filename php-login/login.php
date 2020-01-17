@@ -51,6 +51,46 @@ if (isset ($_GET['back'])) {
 	$server_allowed = true;
 }
 
+if (isset ($_COOKIE['auth_pubtkt']) && $_COOKIE['auth_pubtkt']) {
+	/* Extract data from existing cookie so we can nicely offer the user
+	   a logout function. No attempt at verifying the ticket is made,
+	   as that's not necessary at this point. */
+	$ticket = pubtkt_parse($_COOKIE['auth_pubtkt']);
+	$tkt_validuntil = $ticket['validuntil'];
+	$tkt_graceperiod = $ticket['graceperiod'];
+	$tkt_uid = $ticket['uid'];
+
+	/* Checking validity of the ticket and if we are between begin of grace 
+	   period and end of ticket validity. If so we can refresh ticket */
+	if (pubtkt_verify($pubkeyfile, $keytype, $digest, $_COOKIE['auth_pubtkt']) && isset($tkt_graceperiod)
+		&& is_numeric($tkt_graceperiod) && ($tkt_graceperiod <= time()) 
+		&& (time() <= $tkt_validuntil)) {
+
+		/* getting user information */
+		$user_info = get_login_info($tkt_uid);
+
+		if (isset($user_info) && is_array($user_info)) {
+	
+			$tkt_validuntil = time() + $user_info['data']['timeout'];
+	
+			/* generate the ticket now and set a domain cookie */
+			$tkt = pubtkt_generate($privkeyfile, $keytype, $digest, $tkt_uid,
+				$ticket['cip'], $tkt_validuntil, $user_info['data']['graceperiod'], join(",", $user_info['data']['tokens']), "");
+			setcookie("auth_pubtkt", $tkt, 0, "/", $domain, $secure_cookie);
+	
+			setcookie("sso_lastuser", $tkt_uid, time()+30*24*60*60);
+	
+			if ($_GET['back']) {
+				header("Location: " . $_GET['back']);
+				exit;
+			}
+		} else {
+			/* User is not present in user database (anymore) - delete the cookie */
+			setcookie("auth_pubtkt", false, time() - 86400, "/", $domain, $secure_cookie);
+		}
+	}
+}
+
 if (isset ($_POST) ) {
 	if ( isset ($_POST['username']) ) {
 		$username = strtolower($_POST['username']);	/* always lower-case usernames for easier matching */
@@ -102,48 +142,7 @@ if (isset ($_POST) ) {
 		log_login($_SERVER['REMOTE_ADDR'], $username, false);
 		$loginerr = "Authentication failed. Please try again.";
 	}
-} else {
-	if (isset ($_COOKIE['auth_pubtkt']) && $_COOKIE['auth_pubtkt']) {
-		/* Extract data from existing cookie so we can nicely offer the user
-		   a logout function. No attempt at verifying the ticket is made,
-		   as that's not necessary at this point. */
-		$ticket = pubtkt_parse($_COOKIE['auth_pubtkt']);
-		$tkt_validuntil = $ticket['validuntil'];
-		$tkt_graceperiod = $ticket['graceperiod'];
-		$tkt_uid = $ticket['uid'];
-
-		/* Checking validity of the ticket and if we are between begin of grace 
-		   period and end of ticket validity. If so we can refresh ticket */
-		if (pubtkt_verify($pubkeyfile, $keytype, $digest, $_COOKIE['auth_pubtkt']) && isset($tkt_graceperiod)
-		    && is_numeric($tkt_graceperiod) && ($tkt_graceperiod <= time()) 
-		    && (time() <= $tkt_validuntil)) {
-
-			/* getting user information */
-			$user_info = get_login_info($tkt_uid);
-	
-			if (isset($user_info) && is_array($user_info)) {
-		
-				$tkt_validuntil = time() + $user_info['data']['timeout'];
-		
-				/* generate the ticket now and set a domain cookie */
-				$tkt = pubtkt_generate($privkeyfile, $keytype, $digest, $tkt_uid,
-					$ticket['cip'], $tkt_validuntil, $user_info['data']['graceperiod'], join(",", $user_info['data']['tokens']), "");
-				setcookie("auth_pubtkt", $tkt, 0, "/", $domain, $secure_cookie);
-		
-				setcookie("sso_lastuser", $tkt_uid, time()+30*24*60*60);
-		
-				if ($_GET['back']) {
-					header("Location: " . $_GET['back']);
-					exit;
-				}
-			} else {
-				/* User is not present in user database (anymore) - delete the cookie */
-				setcookie("auth_pubtkt", false, time() - 86400, "/", $domain, $secure_cookie);
-			}
-		}
-	}
 }
-
 ?>
 <html>
 <head>
